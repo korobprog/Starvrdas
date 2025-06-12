@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Архитектура стриминговой платформы с системой подписок</title>
+   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   <style>
+      :root {
+         --primary-color: #3498db;
+         --secondary-color: #2c3e50;
+         --accent-color: #e74c3c;
+         --light-color: #ecf0f1;
+         --dark-color: #34495e;
+         --success-color: #2ecc71;
+         --warning-color: #f39c12;
+         --text-color: #333;
+         --border-radius: 8px;
+         --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+         --transition: all 0.3s ease;
+      }
+
+      * {
+         margin: 0;
+         padding: 0;
+         box-sizing: border-box;
+      }
+
+      body {
+         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+         line-height: 1.6;
+         color: var(--text-color);
+         background-color: #f8f9fa;
+      }
+
+      .container {
+         width: 100%;
+         max-width: 1400px;
+         margin: 0 auto;
+         padding: 0;
+         position: relative;
+      }
+
+      header {
+         background-color: var(--secondary-color);
+         color: white;
+         padding: 1rem;
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         position: sticky;
+         top: 0;
+         z-index: 1000;
+         box-shadow: var(--box-shadow);
+      }
+
+      .logo {
+         display: flex;
+         align-items: center;
+         gap: 1rem;
+      }
+
+      .logo img {
+         border-radius: 50%;
+         border: 2px solid white;
+      }
+
+      .logo span {
+         font-size: 1.5rem;
+         font-weight: bold;
+      }
+
+      .project-info {
+         display: flex;
+         gap: 2rem;
+      }
+
+      .info-item {
+         display: flex;
+         flex-direction: column;
+         align-items: flex-end;
+      }
+
+      .info-item .label {
+         font-size: 0.9rem;
+         opacity: 0.8;
+      }
+
+      .info-item .value {
+         font-weight: bold;
+         font-size: 1.1rem;
+      }
+
+      nav#main-nav {
+         background-color: var(--dark-color);
+         position: sticky;
+         top: 70px;
+         z-index: 900;
+      }
+
+      nav#main-nav ul {
+         display: flex;
+         flex-wrap: wrap;
+         list-style: none;
+         padding: 0;
+         margin: 0;
+      }
+
+      nav#main-nav li {
+         position: relative;
+      }
+
+      nav#main-nav a {
+         display: block;
+         color: white;
+         text-decoration: none;
+         padding: 1rem;
+         transition: var(--transition);
+      }
+
+      nav#main-nav a:hover {
+         background-color: var(--primary-color);
+      }
+
+      .nav-toggle {
+         display: none;
+         flex-direction: column;
+         justify-content: space-between;
+         width: 30px;
+         height: 21px;
+         cursor: pointer;
+         padding: 1rem;
+      }
+
+      .nav-toggle span {
+         height: 3px;
+         width: 100%;
+         background-color: white;
+         border-radius: 3px;
+      }
+
+      main {
+         padding: 2rem;
+         background-color: white;
+         box-shadow: var(--box-shadow);
+         border-radius: var(--border-radius);
+         margin: 1rem;
+      }
+
+      .hero {
+         text-align: center;
+         padding: 3rem 1rem;
+         margin-bottom: 2rem;
+         background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+         color: white;
+         border-radius: var(--border-radius);
+      }
+
+      .hero h1 {
+         font-size: 2.5rem;
+         margin-bottom: 1rem;
+      }
+
+      .subtitle {
+         font-size: 1.2rem;
+         opacity: 0.8;
+      }
+
+      .content-section {
+         margin-bottom: 3rem;
+         padding: 2rem;
+         background-color: white;
+         border-radius: var(--border-radius);
+         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      .content-section h2 {
+         color: var(--secondary-color);
+         margin-bottom: 1.5rem;
+         padding-bottom: 0.5rem;
+         border-bottom: 2px solid var(--primary-color);
+      }
+
+      .subsection {
+         margin-top: 2rem;
+      }
+
+      .subsection h3 {
+         color: var(--dark-color);
+         margin-bottom: 1rem;
+      }
+
+      .component {
+         margin-top: 1.5rem;
+         padding: 1rem;
+         background-color: var(--light-color);
+         border-radius: var(--border-radius);
+      }
+
+      .component h4 {
+         color: var(--primary-color);
+         margin-bottom: 0.5rem;
+      }
+
+      ul {
+         padding-left: 1.5rem;
+         margin-bottom: 1rem;
+      }
+
+      li {
+         margin-bottom: 0.5rem;
+      }
+
+      .mermaid-diagram {
+         margin: 2rem 0;
+         padding: 1rem;
+         background-color: white;
+         border-radius: var(--border-radius);
+         box-shadow: var(--box-shadow);
+         overflow-x: auto;
+      }
+
+      .api-group {
+         margin-bottom: 1.5rem;
+      }
+
+      .api-group h4 {
+         color: var(--primary-color);
+         margin-bottom: 0.5rem;
+      }
+
+      .api-list {
+         list-style: none;
+         padding-left: 0;
+      }
+
+      .api-list li {
+         margin-bottom: 0.5rem;
+      }
+
+      .api-list code {
+         background-color: var(--light-color);
+         padding: 0.2rem 0.4rem;
+         border-radius: 4px;
+         font-family: 'Courier New', Courier, monospace;
+      }
+
+      .phase {
+         margin-bottom: 2rem;
+         padding: 1rem;
+         background-color: var(--light-color);
+         border-radius: var(--border-radius);
+      }
+
+      .phase h3 {
+         color: var(--dark-color);
+         margin-bottom: 1rem;
+      }
+
+      .chart-container {
+         width: 100%;
+         height: 400px;
+         margin: 2rem 0;
+      }
+
+      .key-metrics {
+         display: flex;
+         flex-wrap: wrap;
+         gap: 1rem;
+         margin-top: 2rem;
+      }
+
+      .metric-card {
+         flex: 1;
+         min-width: 200px;
+         padding: 1.5rem;
+         background-color: white;
+         border-radius: var(--border-radius);
+         box-shadow: var(--box-shadow);
+         text-align: center;
+      }
+
+      .metric-card .metric-value {
+         font-size: 2rem;
+         font-weight: bold;
+         color: var(--primary-color);
+         margin: 0.5rem 0;
+      }
+
+      .metric-card .metric-label {
+         color: var(--dark-color);
+         font-size: 0.9rem;
+      }
+
+      footer {
+         background-color: var(--secondary-color);
+         color: white;
+         text-align: center;
+         padding: 2rem;
+         margin-top: 3rem;
+      }
+
+      /* Адаптивность */
+      @media (max-width: 992px) {
+         .project-info {
+            flex-direction: column;
+            gap: 0.5rem;
+         }
+
+         .info-item {
+            align-items: flex-start;
+         }
+      }
+
+      @media (max-width: 768px) {
+         header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+         }
+
+         .nav-toggle {
+            display: flex;
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+         }
+
+         nav#main-nav {
+            position: static;
+         }
+
+         nav#main-nav ul {
+            flex-direction: column;
+            display: none;
+         }
+
+         nav#main-nav.active ul {
+            display: flex;
+         }
+
+         .content-section {
+            padding: 1rem;
+         }
+
+         .hero h1 {
+            font-size: 2rem;
+         }
+      }
+
+      @media (max-width: 576px) {
+         main {
+            padding: 1rem;
+            margin: 0.5rem;
+         }
+
+         .hero {
+            padding: 2rem 1rem;
+         }
+
+         .metric-card {
+            min-width: 100%;
+         }
+      }
+   </style>
+</head>
+
+<body>
+   <div class="container">
+      <header>
+         <div class="logo">
+            <img src="https://via.placeholder.com/50x50" alt="Логотип">
+            <span>Стриминговая платформа</span>
+         </div>
+         <div class="project-info">
+            <div class="info-item">
+               <span class="label">Время реализации:</span>
+               <span class="value">3 месяца</span>
+            </div>
+            <div class="info-item">
+               <span class="label">Стоимость:</span>
+               <span class="value">30 000 рублей</span>
+            </div>
+         </div>
+      </header>
+
+      <nav id="main-nav">
+         <div class="nav-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+         </div>
+         <ul>
+            <li><a href="#overview">Общий обзор</a></li>
+            <li><a href="#tech-stack">Технологический стек</a></li>
+            <li><a href="#backend-structure">Модульная структура бэкенда</a></li>
+            <li><a href="#database-schema">Схема базы данных</a></li>
+            <li><a href="#api">API-интерфейсы</a></li>
+            <li><a href="#streaming-architecture">Архитектура стриминга</a></li>
+            <li><a href="#ui-components">Компоненты пользовательского интерфейса</a></li>
+            <li><a href="#deployment">Развертывание и масштабирование</a></li>
+            <li><a href="#implementation-plan">План реализации</a></li>
+            <li><a href="#multilanguage">Многоязычность</a></li>
+            <li><a href="#payment-systems">Платежные системы</a></li>
+            <li><a href="#user-forecast">Прогноз пользователей</a></li>
+         </ul>
+      </nav>
+
+      <main>
+         <section class="hero">
+            <h1>Архитектура стриминговой платформы с системой подписок</h1>
+            <p class="subtitle">Техническая документация</p>
+         </section>
+
+         <section id="overview" class="content-section">
+            <h2>Общий обзор</h2>
+            <p>Стриминговая платформа представляет собой монолитное приложение с модульной структурой, разработанное с
+               учетом возможного перехода к микросервисной архитектуре в будущем. Система состоит из трех основных
+               клиентских компонентов и серверной части.</p>
+
+            <div class="mermaid-diagram">
+               <pre class="mermaid">
+graph TD
+    subgraph "Клиентские приложения"
+        A[Веб-клиент на React]
+        B[Административная панель на React]
+        C[PWA для стримеров]
+    end
+
+    subgraph "Серверная часть"
+        D[Монолитный бэкенд на NestJS]
+        E[Ant Media Server]
+        F[(PostgreSQL + Prisma)]
+        G[(Redis)]
+    end
+
+    subgraph "Внешние сервисы"
+        H[Telegram API]
+        I[Криптоплатежные шлюзы]
+        J[YouTube API]
+        K[Rutube API]
+    end
+
+    A --> D
+    B --> D
+    C --> D
+    C --> E
+    D --> E
+    D --> F
+    D --> G
+    D --> H
+    D --> I
+    E --> J
+    E --> K
+                    </pre>
+            </div>
+         </section>
+
+         <section id="tech-stack" class="content-section">
+            <h2>Технологический стек</h2>
+
+            <div class="subsection">
+               <h3>Фронтенд</h3>
+               <ul>
+                  <li><strong>Веб-клиент</strong>: React с TypeScript, Redux для управления состоянием</li>
+                  <li><strong>Административная панель</strong>: React с TypeScript, Redux, с использованием тех же
+                     компонентов, что и веб-клиент</li>
+                  <li><strong>Мобильное приложение</strong>: Progressive Web Application (PWA) на основе React с
+                     TypeScript для кроссплатформенного доступа</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Бэкенд</h3>
+               <ul>
+                  <li><strong>Основной сервер</strong>: NestJS (Node.js с TypeScript)</li>
+                  <li><strong>Медиа-сервер</strong>: Ant Media Server</li>
+                  <li><strong>Контейнеризация</strong>: Docker и Docker Compose</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>База данных и кэширование</h3>
+               <ul>
+                  <li><strong>Основная БД</strong>: PostgreSQL с Prisma ORM</li>
+                  <li><strong>Кэширование</strong>: Redis для сессий, кэширования и очередей сообщений</li>
+               </ul>
+            </div>
+         </section>
+
+         <section id="backend-structure" class="content-section">
+            <h2>Модульная структура бэкенда</h2>
+            <p>Монолитный бэкенд на NestJS будет разделен на модули, каждый из которых отвечает за определенную
+               функциональность. Это позволит в будущем легко выделить отдельные модули в микросервисы.</p>
+
+            <div class="mermaid-diagram">
+               <pre class="mermaid">
+graph TD
+    subgraph "NestJS Монолит"
+        A[Основной модуль]
+        B[Модуль аутентификации]
+        C[Модуль пользователей]
+        D[Модуль подписок]
+        E[Модуль платежей]
+        F[Модуль стриминга]
+        G[Модуль уведомлений]
+        H[Модуль календаря]
+        I[Модуль аналитики]
+    end
+
+    A --> B
+    A --> C
+    A --> D
+    A --> E
+    A --> F
+    A --> G
+    A --> H
+    A --> I
+                    </pre>
+            </div>
+
+            <div class="subsection">
+               <h3>Модуль аутентификации</h3>
+               <ul>
+                  <li>Интеграция с Telegram API для авторизации</li>
+                  <li>Управление JWT-токенами</li>
+                  <li>Проверка прав доступа для администраторов</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Модуль пользователей</h3>
+               <ul>
+                  <li>Управление профилями пользователей</li>
+                  <li>Разделение на роли (зрители, стримеры, администраторы)</li>
+                  <li>Управление администраторами (@art_om108, @maximkorobkov и др.)</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Модуль подписок</h3>
+               <ul>
+                  <li>Гибкая система настройки подписок</li>
+                  <li>Управление подписками пользователей</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Модуль платежей</h3>
+               <ul>
+                  <li>Интеграция с криптоплатежными шлюзами (BTC, ETH, USDT)</li>
+                  <li>Подготовка к интеграции с фиатными платежами</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Модуль стриминга</h3>
+               <ul>
+                  <li>Интеграция с Ant Media Server через REST API</li>
+                  <li>Управление стримами (создание, остановка, мониторинг)</li>
+                  <li>Интеграция с YouTube и Rutube API</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Модуль уведомлений</h3>
+               <ul>
+                  <li>Отправка уведомлений о начале трансляций</li>
+                  <li>Push-уведомления для мобильных устройств</li>
+                  <li>Интеграция с Telegram для отправки сообщений</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Модуль календаря</h3>
+               <ul>
+                  <li>Управление расписанием мероприятий</li>
+                  <li>Назначение стримеров на мероприятия</li>
+                  <li>Публикация календаря для пользователей</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Модуль аналитики</h3>
+               <ul>
+                  <li>Сбор данных о просмотрах, подписках, платежах</li>
+                  <li>Генерация отчетов для администраторов</li>
+                  <li>Фильтрация данных по различным параметрам</li>
+               </ul>
+            </div>
+         </section>
+
+         <section id="database-schema" class="content-section">
+            <h2>Схема базы данных</h2>
+
+            <div class="mermaid-diagram">
+               <pre class="mermaid">
+erDiagram
+    USERS {
+        id UUID PK
+        telegram_id String UK
+        username String
+        role UserRole
+        wallet_balance Decimal
+        wallet_currency String
+        profile_image String
+        created_at DateTime
+        updated_at DateTime
+    }
+
+    ADMINS {
+        id UUID PK
+        user_id UUID FK
+        permissions JSON
+        created_at DateTime
+        updated_at DateTime
+    }
+
+    SUBSCRIPTION_PLANS {
+        id UUID PK
+        name String
+        description String
+        price Decimal
+        currency String
+        duration Integer
+        features JSON
+        created_at DateTime
+        updated_at DateTime
+    }
+
+    SUBSCRIPTIONS {
+        id UUID PK
+        user_id UUID FK
+        plan_id UUID FK
+        event_id UUID FK
+        start_date DateTime
+        end_date DateTime
+        status SubscriptionStatus
+        created_at DateTime
+        updated_at DateTime
+    }
+
+    PAYMENTS {
+        id UUID PK
+        user_id UUID FK
+        subscription_id UUID FK
+        amount Decimal
+        currency String
+        payment_method String
+        status PaymentStatus
+        transaction_id String
+        created_at DateTime
+        updated_at DateTime
+    }
+
+    WALLET_TRANSACTIONS {
+        id UUID PK
+        user_id UUID FK
+        amount Decimal
+        currency String
+        transaction_type TransactionType
+        reference_id UUID
+        reference_type String
+        status TransactionStatus
+        created_at DateTime
+    }
+
+    EVENTS {
+        id UUID PK
+        title String
+        description String
+        start_time DateTime
+        end_time DateTime
+        streamer_id UUID FK
+        price Decimal
+        currency String
+        status EventStatus
+        created_at DateTime
+        updated_at DateTime
+    }
+
+    STREAMS {
+        id UUID PK
+        event_id UUID FK
+        streamer_id UUID FK
+        title String
+        description String
+        stream_key String
+        status StreamStatus
+        start_time DateTime
+        end_time DateTime
+        youtube_url String
+        rutube_url String
+        share_url String
+        created_at DateTime
+        updated_at DateTime
+    }
+
+    VIEWS {
+        id UUID PK
+        stream_id UUID FK
+        user_id UUID FK
+        start_time DateTime
+        end_time DateTime
+        duration Integer
+        device_info JSON
+        created_at DateTime
+    }
+
+    SHARES {
+        id UUID PK
+        user_id UUID FK
+        stream_id UUID FK
+        platform String
+        created_at DateTime
+    }
+
+    USERS ||--o{ SUBSCRIPTIONS : "имеет"
+    USERS ||--o{ PAYMENTS : "совершает"
+    USERS ||--o{ STREAMS : "создает"
+    USERS ||--o{ VIEWS : "просматривает"
+    USERS ||--o{ ADMINS : "может быть"
+    USERS ||--o{ WALLET_TRANSACTIONS : "имеет"
+    USERS ||--o{ SHARES : "делает"
+    SUBSCRIPTION_PLANS ||--o{ SUBSCRIPTIONS : "используется в"
+    SUBSCRIPTIONS ||--o{ PAYMENTS : "оплачивается через"
+    EVENTS ||--o{ STREAMS : "имеет"
+    EVENTS ||--o{ SUBSCRIPTIONS : "имеет"
+    STREAMS ||--o{ VIEWS : "имеет"
+    STREAMS ||--o{ SHARES : "имеет"
+                    </pre>
+            </div>
+         </section>
+
+         <section id="api" class="content-section">
+            <h2>API-интерфейсы</h2>
+
+            <div class="subsection">
+               <h3>REST API</h3>
+
+               <div class="api-group">
+                  <h4>Аутентификация</h4>
+                  <ul class="api-list">
+                     <li><code>POST /api/auth/telegram</code> - Авторизация через Telegram</li>
+                     <li><code>POST /api/auth/refresh</code> - Обновление токена</li>
+                     <li><code>GET /api/auth/me</code> - Получение информации о текущем пользователе</li>
+                  </ul>
+               </div>
+
+               <div class="api-group">
+                  <h4>Пользователи</h4>
+                  <ul class="api-list">
+                     <li><code>GET /api/users</code> - Получение списка пользователей (для админов)</li>
+                     <li><code>GET /api/users/:id</code> - Получение информации о пользователе</li>
+                     <li><code>GET /api/users/me</code> - Получение информации о текущем пользователе</li>
+                     <li><code>GET /api/users/me/profile</code> - Получение профиля текущего пользователя</li>
+                     <li><code>PATCH /api/users/:id</code> - Обновление информации о пользователе</li>
+                     <li><code>POST /api/users/admins</code> - Создание нового администратора (для админов)</li>
+                  </ul>
+               </div>
+
+               <div class="api-group">
+                  <h4>Кошелек</h4>
+                  <ul class="api-list">
+                     <li><code>GET /api/wallet/balance</code> - Получение баланса кошелька</li>
+                     <li><code>POST /api/wallet/deposit</code> - Пополнение кошелька</li>
+                     <li><code>GET /api/wallet/transactions</code> - Получение истории транзакций</li>
+                  </ul>
+               </div>
+
+               <div class="api-group">
+                  <h4>Подписки</h4>
+                  <ul class="api-list">
+                     <li><code>GET /api/subscription-plans</code> - Получение списка планов подписок</li>
+                     <li><code>POST /api/subscription-plans</code> - Создание нового плана подписки (для админов)</li>
+                     <li><code>GET /api/subscriptions</code> - Получение списка подписок пользователя</li>
+                     <li><code>GET /api/subscriptions/active</code> - Получение списка активных подписок пользователя
+                     </li>
+                     <li><code>POST /api/subscriptions</code> - Создание новой подписки</li>
+                     <li><code>POST /api/events/:id/subscribe</code> - Подписка на мероприятие</li>
+                  </ul>
+               </div>
+
+               <div class="api-group">
+                  <h4>Платежи</h4>
+                  <ul class="api-list">
+                     <li><code>POST /api/payments</code> - Создание нового платежа</li>
+                     <li><code>GET /api/payments</code> - Получение списка платежей пользователя</li>
+                     <li><code>GET /api/payments/:id/status</code> - Проверка статуса платежа</li>
+                  </ul>
+               </div>
+
+               <div class="api-group">
+                  <h4>Календарь</h4>
+                  <ul class="api-list">
+                     <li><code>GET /api/events</code> - Получение списка мероприятий</li>
+                     <li><code>GET /api/events/upcoming</code> - Получение списка предстоящих мероприятий</li>
+                     <li><code>POST /api/events</code> - Создание нового мероприятия</li>
+                     <li><code>GET /api/events/:id</code> - Получение информации о мероприятии</li>
+                     <li><code>PATCH /api/events/:id</code> - Обновление информации о мероприятии</li>
+                     <li><code>DELETE /api/events/:id</code> - Удаление мероприятия</li>
+                  </ul>
+               </div>
+
+               <div class="api-group">
+                  <h4>Стриминг</h4>
+                  <ul class="api-list">
+                     <li><code>POST /api/streams</code> - Создание нового стрима</li>
+                     <li><code>GET /api/streams</code> - Получение списка стримов</li>
+                     <li><code>GET /api/streams/active</code> - Получение списка активных стримов</li>
+                     <li><code>GET /api/streams/:id</code> - Получение информации о стриме</li>
+                     <li><code>PATCH /api/streams/:id</code> - Обновление информации о стриме</li>
+                     <li><code>POST /api/streams/:id/start</code> - Запуск стрима</li>
+                     <li><code>POST /api/streams/:id/stop</code> - Остановка стрима</li>
+                     <li><code>POST /api/streams/:id/share</code> - Поделиться стримом</li>
+                  </ul>
+               </div>
+
+               <div class="api-group">
+                  <h4>Аналитика</h4>
+                  <ul class="api-list">
+                     <li><code>GET /api/analytics/views</code> - Получение статистики просмотров</li>
+                     <li><code>GET /api/analytics/subscriptions</code> - Получение статистики подписок</li>
+                     <li><code>GET /api/analytics/payments</code> - Получение статистики платежей</li>
+                     <li><code>GET /api/analytics/streams</code> - Получение статистики стримов</li>
+                  </ul>
+               </div>
+            </div>
+
+            <div class="subsection">
+               <h3>WebSocket API</h3>
+               <ul>
+                  <li><code>ws://api/notifications</code> - Канал для получения уведомлений в реальном времени</li>
+                  <li><code>ws://api/streams/:id/chat</code> - Чат для стрима</li>
+                  <li><code>ws://api/streams/:id/stats</code> - Статистика стрима в реальном времени</li>
+               </ul>
+            </div>
+         </section>
+
+         <section id="streaming-architecture" class="content-section">
+            <h2>Архитектура стриминга</h2>
+            <p>Для обеспечения высококачественного стриминга с минимальной задержкой используется Ant Media Server,
+               который поддерживает различные протоколы стриминга и может масштабироваться при увеличении нагрузки.</p>
+
+            <div class="mermaid-diagram">
+               <pre class="mermaid">
+graph TD
+   A[Стример] -->|RTMP| B[Ant Media Server]
+   B -->|WebRTC| C[Зритель 1]
+   B -->|HLS| D[Зритель 2]
+   B -->|RTMP| E[YouTube]
+   B -->|RTMP| F[Rutube]
+   B -->|WebSocket| G[Статистика и чат]
+               </pre>
+            </div>
+
+            <div class="subsection">
+               <h3>Протоколы стриминга</h3>
+               <ul>
+                  <li><strong>RTMP</strong> - для входящих потоков от стримеров</li>
+                  <li><strong>WebRTC</strong> - для зрителей, требующих минимальной задержки</li>
+                  <li><strong>HLS</strong> - для зрителей с ограниченной пропускной способностью</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Адаптивный битрейт</h3>
+               <p>Система автоматически адаптирует качество видео в зависимости от пропускной способности канала
+                  зрителя:</p>
+               <ul>
+                  <li>Высокое качество (1080p) - 3-6 Мбит/с</li>
+                  <li>Среднее качество (720p) - 1.5-3 Мбит/с</li>
+                  <li>Низкое качество (480p) - 0.8-1.5 Мбит/с</li>
+                  <li>Мобильное качество (360p) - 0.5-0.8 Мбит/с</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Запись и хранение</h3>
+               <p>Все стримы автоматически записываются и сохраняются для последующего просмотра:</p>
+               <ul>
+                  <li>Временное хранение на локальных дисках Ant Media Server</li>
+                  <li>Долгосрочное хранение в облачном хранилище</li>
+                  <li>Автоматическое создание превью и миниатюр</li>
+               </ul>
+            </div>
+         </section>
+
+         <section id="ui-components" class="content-section">
+            <h2>Компоненты пользовательского интерфейса</h2>
+
+            <div class="subsection">
+               <h3>Веб-клиент</h3>
+               <ul>
+                  <li><strong>Главная страница</strong> - список активных и предстоящих стримов</li>
+                  <li><strong>Страница стрима</strong> - плеер, чат, информация о стриме</li>
+                  <li><strong>Профиль пользователя</strong> - информация о пользователе, подписки, история просмотров
+                  </li>
+                  <li><strong>Календарь мероприятий</strong> - расписание предстоящих стримов</li>
+                  <li><strong>Страница оплаты</strong> - выбор плана подписки, оплата</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Административная панель</h3>
+               <ul>
+                  <li><strong>Дашборд</strong> - общая статистика платформы</li>
+                  <li><strong>Управление пользователями</strong> - список пользователей, редактирование, блокировка</li>
+                  <li><strong>Управление стримами</strong> - мониторинг активных стримов, статистика</li>
+                  <li><strong>Управление подписками</strong> - создание и редактирование планов подписок</li>
+                  <li><strong>Управление мероприятиями</strong> - создание и редактирование мероприятий</li>
+                  <li><strong>Финансовая отчетность</strong> - статистика платежей, выручка</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>PWA для стримеров</h3>
+               <ul>
+                  <li><strong>Настройки стрима</strong> - название, описание, превью</li>
+                  <li><strong>Управление стримом</strong> - запуск, остановка, мониторинг</li>
+                  <li><strong>Чат со зрителями</strong> - общение в реальном времени</li>
+                  <li><strong>Статистика</strong> - количество зрителей, лайки, комментарии</li>
+                  <li><strong>Расписание</strong> - планирование будущих стримов</li>
+               </ul>
+            </div>
+         </section>
+
+         <section id="deployment" class="content-section">
+            <h2>Развертывание и масштабирование</h2>
+
+            <div class="subsection">
+               <h3>Инфраструктура</h3>
+               <p>Для начального развертывания будет использоваться следующая инфраструктура:</p>
+               <ul>
+                  <li>1 сервер для NestJS бэкенда</li>
+                  <li>1 сервер для Ant Media Server</li>
+                  <li>1 сервер для базы данных PostgreSQL</li>
+                  <li>1 сервер для Redis</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Контейнеризация</h3>
+               <p>Все компоненты системы будут упакованы в Docker-контейнеры и управляться с помощью Docker Compose:</p>
+               <ul>
+                  <li>Контейнер с NestJS бэкендом</li>
+                  <li>Контейнер с Ant Media Server</li>
+                  <li>Контейнер с PostgreSQL</li>
+                  <li>Контейнер с Redis</li>
+                  <li>Контейнер с Nginx для проксирования запросов</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Масштабирование</h3>
+               <p>При увеличении нагрузки система может быть масштабирована следующим образом:</p>
+               <ul>
+                  <li>Горизонтальное масштабирование бэкенда за счет добавления новых инстансов</li>
+                  <li>Горизонтальное масштабирование Ant Media Server для обработки большего количества стримов</li>
+                  <li>Репликация базы данных для обеспечения высокой доступности</li>
+                  <li>Кластеризация Redis для кэширования и очередей сообщений</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Мониторинг</h3>
+               <p>Для мониторинга системы будут использоваться следующие инструменты:</p>
+               <ul>
+                  <li>Prometheus для сбора метрик</li>
+                  <li>Grafana для визуализации метрик</li>
+                  <li>ELK Stack для централизованного логирования</li>
+                  <li>Alertmanager для оповещения о проблемах</li>
+               </ul>
+            </div>
+         </section>
+
+         <section id="implementation-plan" class="content-section">
+            <h2>План реализации</h2>
+
+            <div class="phase">
+               <h3>Фаза 1: Базовая функциональность (1 месяц)</h3>
+               <ul>
+                  <li>Настройка инфраструктуры и окружения разработки</li>
+                  <li>Реализация базовой структуры бэкенда</li>
+                  <li>Интеграция с Telegram API для авторизации</li>
+                  <li>Реализация базовой функциональности стриминга</li>
+                  <li>Разработка основных компонентов веб-клиента</li>
+               </ul>
+            </div>
+
+            <div class="phase">
+               <h3>Фаза 2: Расширенная функциональность (1 месяц)</h3>
+               <ul>
+                  <li>Реализация системы подписок</li>
+                  <li>Интеграция с криптоплатежными шлюзами</li>
+                  <li>Разработка административной панели</li>
+                  <li>Реализация календаря мероприятий</li>
+                  <li>Интеграция с YouTube и Rutube API</li>
+               </ul>
+            </div>
+
+            <div class="phase">
+               <h3>Фаза 3: Финальная доработка (1 месяц)</h3>
+               <ul>
+                  <li>Разработка PWA для стримеров</li>
+                  <li>Реализация системы аналитики</li>
+                  <li>Оптимизация производительности</li>
+                  <li>Тестирование и исправление ошибок</li>
+                  <li>Подготовка к запуску</li>
+               </ul>
+            </div>
+         </section>
+
+         <section id="multilanguage" class="content-section">
+            <h2>Многоязычность</h2>
+            <p>Платформа будет поддерживать несколько языков для обеспечения доступности для пользователей из разных
+               стран:</p>
+
+            <div class="subsection">
+               <h3>Поддерживаемые языки</h3>
+               <ul>
+                  <li>Русский (основной)</li>
+                  <li>Английский</li>
+                  <li>Испанский</li>
+                  <li>Китайский</li>
+                  <li>Хинди</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Реализация</h3>
+               <ul>
+                  <li>Использование i18next для локализации интерфейса</li>
+                  <li>Хранение переводов в JSON-файлах</li>
+                  <li>Автоматическое определение языка пользователя</li>
+                  <li>Возможность ручного выбора языка</li>
+               </ul>
+            </div>
+         </section>
+
+         <section id="payment-systems" class="content-section">
+            <h2>Платежные системы</h2>
+            <p>Платформа будет поддерживать различные способы оплаты для обеспечения удобства пользователей:</p>
+
+            <div class="subsection">
+               <h3>Криптовалюты</h3>
+               <ul>
+                  <li>Bitcoin (BTC)</li>
+                  <li>Ethereum (ETH)</li>
+                  <li>Tether (USDT)</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Фиатные валюты (в будущем)</h3>
+               <ul>
+                  <li>Банковские карты (Visa, MasterCard)</li>
+                  <li>Электронные кошельки (WebMoney, QIWI)</li>
+                  <li>Мобильные платежи</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Процесс оплаты</h3>
+               <ol>
+                  <li>Выбор плана подписки</li>
+                  <li>Выбор способа оплаты</li>
+                  <li>Генерация адреса для оплаты (для криптовалют)</li>
+                  <li>Подтверждение платежа</li>
+                  <li>Активация подписки</li>
+               </ol>
+            </div>
+         </section>
+
+         <section id="user-forecast" class="content-section">
+            <h2>Прогноз пользователей</h2>
+            <p>На основе анализа рынка и потенциальной аудитории был составлен прогноз роста пользователей платформы в
+               течение первого года после запуска.</p>
+
+            <div class="chart-container">
+               <canvas id="usersChart"></canvas>
+            </div>
+
+            <div class="key-metrics">
+               <div class="metric-card">
+                  <div class="metric-label">Прогноз пользователей через 6 месяцев</div>
+                  <div class="metric-value">5 000</div>
+               </div>
+               <div class="metric-card">
+                  <div class="metric-label">Прогноз пользователей через 12 месяцев</div>
+                  <div class="metric-value">15 000</div>
+               </div>
+               <div class="metric-card">
+                  <div class="metric-label">Конверсия в платящих пользователей</div>
+                  <div class="metric-value">8%</div>
+               </div>
+               <div class="metric-card">
+                  <div class="metric-label">Средний доход с пользователя</div>
+                  <div class="metric-value">500 ₽</div>
+               </div>
+            </div>
+         </section>
+      </main>
+
+      <footer>
+         <p>© 2025 Стриминговая платформа. Все права защищены.</p>
+      </footer>
+   </div>
+
+   <script>
+      // Инициализация Mermaid
+      mermaid.initialize({ startOnLoad: true });
+
+      // График прогноза пользователей
+      document.addEventListener('DOMContentLoaded', function () {
+         const ctx = document.getElementById('usersChart').getContext('2d');
+         new Chart(ctx, {
+            type: 'line',
+            data: {
+               labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+               datasets: [{
+                  label: 'Количество пользователей',
+                  data: [500, 1000, 2000, 3500, 5000, 6500, 8000, 10000, 11500, 13000, 14000, 15000],
+                  backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                  borderColor: 'rgba(52, 152, 219, 1)',
+                  borderWidth: 2,
+                  tension: 0.4
+               }]
+            },
+            options: {
+               responsive: true,
+               maintainAspectRatio: false,
+               scales: {
+                  y: {
+                     beginAtZero: true,
+                     title: {
+                        display: true,
+                        text: 'Количество пользователей'
+                     }
+                  },
+                  x: {
+                     title: {
+                        display: true,
+                        text: 'Месяц'
+                     }
+                  }
+               }
+            }
+         });
+      });
+
+      // Мобильное меню
+      document.addEventListener('DOMContentLoaded', function () {
+         const navToggle = document.querySelector('.nav-toggle');
+         const mainNav = document.getElementById('main-nav');
+
+         navToggle.addEventListener('click', function () {
+            mainNav.classList.toggle('active');
+         });
+      });
+   </script>
+</body>
+
+</html>
