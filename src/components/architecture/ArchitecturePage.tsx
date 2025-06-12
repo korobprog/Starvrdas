@@ -304,9 +304,9 @@ const ArchitecturePage: React.FC = () => {
             />
             <MetricCard
               label="Стоимость проекта"
-              value="30 000 ₽"
+              value="15 000 ₽"
               icon={MetricIconType.COST}
-              description="Включая все этапы разработки"
+              description="В месяц"
               color="#e74c3c"
             />
             <MetricCard

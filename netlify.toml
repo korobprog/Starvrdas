@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Правило для SPA (Single Page Application)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Настройки для ветки
+[context.production]
+  command = "npm run build"
+
+[context.deploy-preview]
+  command = "npm run build"

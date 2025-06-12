@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import mermaid from 'mermaid';
 import './Architecture.css';
 
@@ -9,33 +9,28 @@ interface MermaidDiagramProps {
 
 const MermaidDiagram: React.FC<MermaidDiagramProps> = ({
   chart,
-  id = `mermaid-${Math.random().toString(36).substr(2, 9)}`,
+  id = `mermaid-${Math.random().toString(36).substring(2, 9)}`,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: 'default',
-      securityLevel: 'loose',
-    });
+    // Очищаем предыдущие диаграммы с тем же ID
+    const element = document.getElementById(id);
+    if (element) {
+      element.innerHTML = chart;
+      element.removeAttribute('data-processed');
+    }
 
-    if (containerRef.current) {
-      try {
-        mermaid.render(id, chart).then((svgCode) => {
-          if (containerRef.current) {
-            containerRef.current.innerHTML = svgCode.svg;
-          }
-        });
-      } catch (error) {
-        console.error('Ошибка при рендеринге Mermaid диаграммы:', error);
-      }
+    try {
+      // Перерендерим все диаграммы на странице
+      mermaid.contentLoaded();
+    } catch (error) {
+      console.error('Ошибка при рендеринге Mermaid диаграммы:', error);
+      console.log('Диаграмма:', chart);
     }
   }, [chart, id]);
 
   return (
     <div className="mermaid-diagram">
-      <div ref={containerRef} className="mermaid" id={id}>
+      <div className="mermaid" id={id}>
         {chart}
       </div>
     </div>

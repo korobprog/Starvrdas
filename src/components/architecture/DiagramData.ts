@@ -61,125 +61,6 @@ graph TD
 
 export const databaseSchemaDiagram = `
 erDiagram
-    USERS {
-        id UUID PK
-        telegram_id String UK
-        username String
-        role UserRole
-        wallet_balance Decimal
-        wallet_currency String
-        profile_image String
-        created_at DateTime
-        updated_at DateTime
-    }
-
-    ADMINS {
-        id UUID PK
-        user_id UUID FK
-        permissions JSON
-        created_at DateTime
-        updated_at DateTime
-    }
-
-    SUBSCRIPTION_PLANS {
-        id UUID PK
-        name String
-        description String
-        price Decimal
-        currency String
-        duration Integer
-        features JSON
-        created_at DateTime
-        updated_at DateTime
-    }
-
-    SUBSCRIPTIONS {
-        id UUID PK
-        user_id UUID FK
-        plan_id UUID FK
-        event_id UUID FK
-        start_date DateTime
-        end_date DateTime
-        status SubscriptionStatus
-        created_at DateTime
-        updated_at DateTime
-    }
-
-    PAYMENTS {
-        id UUID PK
-        user_id UUID FK
-        subscription_id UUID FK
-        amount Decimal
-        currency String
-        payment_method String
-        status PaymentStatus
-        transaction_id String
-        created_at DateTime
-        updated_at DateTime
-    }
-
-    WALLET_TRANSACTIONS {
-        id UUID PK
-        user_id UUID FK
-        amount Decimal
-        currency String
-        transaction_type TransactionType
-        reference_id UUID
-        reference_type String
-        status TransactionStatus
-        created_at DateTime
-    }
-
-    EVENTS {
-        id UUID PK
-        title String
-        description String
-        start_time DateTime
-        end_time DateTime
-        streamer_id UUID FK
-        price Decimal
-        currency String
-        status EventStatus
-        created_at DateTime
-        updated_at DateTime
-    }
-
-    STREAMS {
-        id UUID PK
-        event_id UUID FK
-        streamer_id UUID FK
-        title String
-        description String
-        stream_key String
-        status StreamStatus
-        start_time DateTime
-        end_time DateTime
-        youtube_url String
-        rutube_url String
-        share_url String
-        created_at DateTime
-        updated_at DateTime
-    }
-
-    VIEWS {
-        id UUID PK
-        stream_id UUID FK
-        user_id UUID FK
-        start_time DateTime
-        end_time DateTime
-        duration Integer
-        device_info JSON
-        created_at DateTime
-    }
-
-    SHARES {
-        id UUID PK
-        user_id UUID FK
-        stream_id UUID FK
-        platform String
-        created_at DateTime
-    }
-
     USERS ||--o{ SUBSCRIPTIONS : "имеет"
     USERS ||--o{ PAYMENTS : "совершает"
     USERS ||--o{ STREAMS : "создает"
@@ -193,6 +74,125 @@ erDiagram
     EVENTS ||--o{ SUBSCRIPTIONS : "имеет"
     STREAMS ||--o{ VIEWS : "имеет"
     STREAMS ||--o{ SHARES : "имеет"
+    
+    USERS {
+        UUID id PK
+        String telegram_id UK
+        String username
+        UserRole role
+        Decimal wallet_balance
+        String wallet_currency
+        String profile_image
+        DateTime created_at
+        DateTime updated_at
+    }
+
+    ADMINS {
+        UUID id PK
+        UUID user_id FK
+        JSON permissions
+        DateTime created_at
+        DateTime updated_at
+    }
+
+    SUBSCRIPTION_PLANS {
+        UUID id PK
+        String name
+        String description
+        Decimal price
+        String currency
+        Integer duration
+        JSON features
+        DateTime created_at
+        DateTime updated_at
+    }
+
+    SUBSCRIPTIONS {
+        UUID id PK
+        UUID user_id FK
+        UUID plan_id FK
+        UUID event_id FK
+        DateTime start_date
+        DateTime end_date
+        SubscriptionStatus status
+        DateTime created_at
+        DateTime updated_at
+    }
+
+    PAYMENTS {
+        UUID id PK
+        UUID user_id FK
+        UUID subscription_id FK
+        Decimal amount
+        String currency
+        String payment_method
+        PaymentStatus status
+        String transaction_id
+        DateTime created_at
+        DateTime updated_at
+    }
+
+    WALLET_TRANSACTIONS {
+        UUID id PK
+        UUID user_id FK
+        Decimal amount
+        String currency
+        TransactionType transaction_type
+        UUID reference_id
+        String reference_type
+        TransactionStatus status
+        DateTime created_at
+    }
+
+    EVENTS {
+        UUID id PK
+        String title
+        String description
+        DateTime start_time
+        DateTime end_time
+        UUID streamer_id FK
+        Decimal price
+        String currency
+        EventStatus status
+        DateTime created_at
+        DateTime updated_at
+    }
+
+    STREAMS {
+        UUID id PK
+        UUID event_id FK
+        UUID streamer_id FK
+        String title
+        String description
+        String stream_key
+        StreamStatus status
+        DateTime start_time
+        DateTime end_time
+        String youtube_url
+        String rutube_url
+        String share_url
+        DateTime created_at
+        DateTime updated_at
+    }
+
+    VIEWS {
+        UUID id PK
+        UUID stream_id FK
+        UUID user_id FK
+        DateTime start_time
+        DateTime end_time
+        Integer duration
+        JSON device_info
+        DateTime created_at
+    }
+
+    SHARES {
+        UUID id PK
+        UUID user_id FK
+        UUID stream_id FK
+        String platform
+        DateTime created_at
+    }
 `;
 
 export const streamingArchitectureDiagram = `
