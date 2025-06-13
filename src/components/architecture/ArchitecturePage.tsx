@@ -15,6 +15,13 @@ import {
   backendStructureDiagram,
   databaseSchemaDiagram,
   streamingArchitectureDiagram,
+  multilanguageArchitectureDiagram,
+  multilanguageDataStructureDiagram,
+  paymentSystemArchitectureDiagram,
+  paymentModuleExtensionDiagram,
+  paymentDatabaseSchemaDiagram,
+  paymentProcessDiagram,
+  paymentBackendIntegrationDiagram,
 } from './DiagramData';
 import {
   authEndpoints,
@@ -334,6 +341,283 @@ const ArchitecturePage: React.FC = () => {
               color="#9b59b6"
             />
           </div>
+        </ContentSection>
+
+        <ContentSection
+          id="multilanguage"
+          title="Многоязычность клиентского приложения"
+        >
+          <p>
+            Система многоязычности обеспечивает полную локализацию интерфейса и
+            контента приложения для различных языков, с возможностью
+            динамического переключения и автоматического определения
+            предпочтительного языка пользователя.
+          </p>
+
+          <Subsection title="Общая архитектура многоязычности">
+            <MermaidDiagram chart={multilanguageArchitectureDiagram} />
+          </Subsection>
+
+          <Subsection title="Технический стек для многоязычности">
+            <ul>
+              <li>
+                <strong>Фронтенд</strong>:
+                <ul>
+                  <li>
+                    React-i18next для управления переводами в React-приложениях
+                  </li>
+                  <li>Формат JSON для файлов переводов</li>
+                  <li>
+                    Динамическая загрузка языковых пакетов для оптимизации
+                    производительности
+                  </li>
+                  <li>
+                    Компоненты с поддержкой RTL (для возможного добавления
+                    языков с письмом справа налево в будущем)
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <strong>Бэкенд</strong>:
+                <ul>
+                  <li>
+                    NestJS i18n модуль для локализации серверных сообщений
+                  </li>
+                  <li>
+                    Хранение локализованного контента в базе данных с языковыми
+                    метками
+                  </li>
+                  <li>
+                    API для получения переводов и локализованного контента
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </Subsection>
+
+          <Subsection title="Структура данных для многоязычности">
+            <MermaidDiagram chart={multilanguageDataStructureDiagram} />
+          </Subsection>
+
+          <Subsection title="API для многоязычности">
+            <ul>
+              <li>
+                <code>GET /api/languages</code> - Получение списка доступных
+                языков
+              </li>
+              <li>
+                <code>GET /api/translations/:lang</code> - Получение переводов
+                для конкретного языка
+              </li>
+              <li>
+                <code>GET /api/translations/:lang/:namespace</code> - Получение
+                переводов для конкретного языка и пространства имен
+              </li>
+              <li>
+                <code>PATCH /api/users/me/language</code> - Обновление языковых
+                предпочтений пользователя
+              </li>
+            </ul>
+          </Subsection>
+
+          <Subsection title="Компоненты пользовательского интерфейса для многоязычности">
+            <ul>
+              <li>Селектор языка в шапке сайта</li>
+              <li>Автоматическое определение языка при первом посещении</li>
+              <li>
+                Сохранение выбранного языка в профиле пользователя и локальном
+                хранилище
+              </li>
+              <li>
+                Адаптация UI под особенности выбранного языка (длина текста,
+                направление письма)
+              </li>
+            </ul>
+          </Subsection>
+        </ContentSection>
+
+        <ContentSection id="payment-systems" title="Платежные системы">
+          <p>
+            Система платежей обеспечивает гибкую интеграцию с различными
+            платежными шлюзами в зависимости от региона пользователя, с
+            поддержкой множества валют и соблюдением региональных регуляторных
+            требований.
+          </p>
+
+          <Subsection title="Общая архитектура платежной системы">
+            <MermaidDiagram chart={paymentSystemArchitectureDiagram} />
+          </Subsection>
+
+          <Subsection title="Расширение модуля платежей">
+            <MermaidDiagram chart={paymentModuleExtensionDiagram} />
+          </Subsection>
+
+          <Subsection title="Расширение схемы базы данных">
+            <MermaidDiagram chart={paymentDatabaseSchemaDiagram} />
+          </Subsection>
+
+          <Subsection title="Процесс обработки платежей">
+            <MermaidDiagram chart={paymentProcessDiagram} />
+          </Subsection>
+
+          <Subsection title="Интеграция с платежными шлюзами">
+            <Subsection title="Россия">
+              <ul>
+                <li>
+                  <strong>ЮKassa (Юмани)</strong> - для карт и электронных
+                  кошельков
+                </li>
+                <li>
+                  <strong>Система быстрых платежей (СБП)</strong> - для
+                  банковских переводов
+                </li>
+                <li>
+                  <strong>Криптовалютные шлюзы</strong> - для платежей в BTC,
+                  ETH, USDT
+                </li>
+              </ul>
+            </Subsection>
+
+            <Subsection title="СНГ">
+              <ul>
+                <li>
+                  <strong>Kaspi KZ</strong> - для Казахстана
+                </li>
+                <li>
+                  <strong>Белкарт</strong> - для Беларуси
+                </li>
+                <li>
+                  <strong>Криптовалютные шлюзы</strong> - для всех стран СНГ
+                </li>
+              </ul>
+            </Subsection>
+
+            <Subsection title="Европа">
+              <ul>
+                <li>
+                  <strong>Stripe</strong> - для карт и банковских переводов
+                </li>
+                <li>
+                  <strong>PayPal</strong> - для электронных платежей
+                </li>
+                <li>
+                  <strong>Криптовалютные шлюзы</strong> - для всех европейских
+                  стран
+                </li>
+              </ul>
+            </Subsection>
+
+            <Subsection title="Индия">
+              <ul>
+                <li>
+                  <strong>UPI (Unified Payments Interface)</strong> - популярная
+                  система мгновенных платежей
+                </li>
+                <li>
+                  <strong>Paytm</strong> - крупнейший цифровой кошелек и
+                  платежная система
+                </li>
+                <li>
+                  <strong>RazorPay</strong> - платежный шлюз для онлайн-бизнеса
+                </li>
+                <li>
+                  <strong>PhonePe</strong> - популярное платежное приложение
+                </li>
+                <li>
+                  <strong>Google Pay India</strong> - адаптированная для
+                  индийского рынка версия
+                </li>
+              </ul>
+            </Subsection>
+          </Subsection>
+
+          <Subsection title="Соответствие регуляторным требованиям">
+            <Subsection title="Индия">
+              <ul>
+                <li>
+                  <strong>Требования RBI (Reserve Bank of India):</strong>
+                  <ul>
+                    <li>
+                      Двухфакторная аутентификация для всех онлайн-транзакций
+                    </li>
+                    <li>
+                      Хранение данных платежных карт только на серверах в Индии
+                    </li>
+                    <li>
+                      Соответствие стандарту PCI DSS для обработки платежных
+                      данных
+                    </li>
+                    <li>Интеграция с системой UPI для мгновенных платежей</li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>Требования KYC (Know Your Customer):</strong>
+                  <ul>
+                    <li>
+                      Верификация личности для транзакций выше определенной
+                      суммы
+                    </li>
+                    <li>
+                      Сбор и хранение необходимых идентификационных данных
+                    </li>
+                    <li>
+                      Интеграция с Aadhaar (система уникальной идентификации в
+                      Индии)
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>Налоговые требования:</strong>
+                  <ul>
+                    <li>
+                      Автоматический расчет и удержание GST (Goods and Services
+                      Tax)
+                    </li>
+                    <li>
+                      Формирование налоговых отчетов для индийских пользователей
+                    </li>
+                    <li>
+                      Соответствие требованиям TDS (Tax Deducted at Source)
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </Subsection>
+          </Subsection>
+
+          <Subsection title="API для платежей">
+            <ul>
+              <li>
+                <code>GET /api/payment-methods</code> - Получение доступных
+                методов оплаты для текущего региона пользователя
+              </li>
+              <li>
+                <code>GET /api/currencies</code> - Получение списка
+                поддерживаемых валют
+              </li>
+              <li>
+                <code>GET /api/subscription-plans/prices</code> - Получение цен
+                планов подписок в валюте пользователя
+              </li>
+              <li>
+                <code>POST /api/payments/init</code> - Инициализация платежа с
+                выбором платежного метода
+              </li>
+              <li>
+                <code>GET /api/regions</code> - Получение информации о регионах
+                и доступных платежных методах
+              </li>
+            </ul>
+          </Subsection>
+
+          <Subsection title="Интеграция многоязычности и платежных шлюзов">
+            <p>
+              Интеграция платежных шлюзов с системой многоязычности обеспечивает
+              корректное отображение информации о платежах на языке пользователя
+              и учитывает региональные особенности.
+            </p>
+            <MermaidDiagram chart={paymentBackendIntegrationDiagram} />
+          </Subsection>
         </ContentSection>
       </main>
       <Footer />

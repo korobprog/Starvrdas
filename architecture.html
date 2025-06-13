@@ -1014,28 +1014,127 @@ graph TD
          </section>
 
          <section id="multilanguage" class="content-section">
-            <h2>Многоязычность</h2>
-            <p>Платформа будет поддерживать несколько языков для обеспечения доступности для пользователей из разных
-               стран:</p>
+            <h2>Многоязычность клиентского приложения</h2>
+            <p>
+               Система многоязычности обеспечивает полную локализацию интерфейса и контента приложения
+               для различных языков, с возможностью динамического переключения и автоматического определения
+               предпочтительного языка пользователя.
+            </p>
 
             <div class="subsection">
-               <h3>Поддерживаемые языки</h3>
+               <h3>Общая архитектура многоязычности</h3>
+               <div class="mermaid-diagram">
+                  <pre class="mermaid">
+graph TD
+  A[Клиентское приложение] --> B[i18n модуль]
+  B --> C[Хранилище переводов]
+  B --> D[Компоненты с поддержкой локализации]
+  B --> E[Сервис определения языка]
+  E --> F[Определение по браузеру]
+  E --> G[Выбор пользователя]
+  E --> H[Геолокация]
+  C --> I[Русский язык]
+  C --> J[Английский язык]
+  K[Бэкенд] --> L[API с поддержкой локализации]
+  L --> M[Локализованные данные]
+  L --> N[Метаданные контента]
+                  </pre>
+               </div>
+            </div>
+
+            <div class="subsection">
+               <h3>Технический стек для многоязычности</h3>
                <ul>
-                  <li>Русский (основной)</li>
-                  <li>Английский</li>
-                  <li>Испанский</li>
-                  <li>Китайский</li>
-                  <li>Хинди</li>
+                  <li>
+                     <strong>Фронтенд</strong>:
+                     <ul>
+                        <li>React-i18next для управления переводами в React-приложениях</li>
+                        <li>Формат JSON для файлов переводов</li>
+                        <li>Динамическая загрузка языковых пакетов для оптимизации производительности</li>
+                        <li>Компоненты с поддержкой RTL (для возможного добавления языков с письмом справа налево в
+                           будущем)</li>
+                     </ul>
+                  </li>
+                  <li>
+                     <strong>Бэкенд</strong>:
+                     <ul>
+                        <li>NestJS i18n модуль для локализации серверных сообщений</li>
+                        <li>Хранение локализованного контента в базе данных с языковыми метками</li>
+                        <li>API для получения переводов и локализованного контента</li>
+                     </ul>
+                  </li>
                </ul>
             </div>
 
             <div class="subsection">
-               <h3>Реализация</h3>
+               <h3>Структура данных для многоязычности</h3>
+               <div class="mermaid-diagram">
+                  <pre class="mermaid">
+erDiagram
+  LANGUAGES {
+      id UUID PK
+      code String UK
+      name String
+      is_default Boolean
+      is_active Boolean
+      created_at DateTime
+      updated_at DateTime
+  }
+
+  TRANSLATIONS {
+      id UUID PK
+      language_id UUID FK
+      namespace String
+      key String
+      value Text
+      created_at DateTime
+      updated_at DateTime
+  }
+
+  LOCALIZED_CONTENT {
+      id UUID PK
+      entity_id UUID
+      entity_type String
+      language_id UUID FK
+      field_name String
+      value Text
+      created_at DateTime
+      updated_at DateTime
+  }
+
+  USER_LANGUAGE_PREFERENCES {
+      id UUID PK
+      user_id UUID FK
+      language_id UUID FK
+      created_at DateTime
+      updated_at DateTime
+  }
+
+  LANGUAGES ||--o{ TRANSLATIONS : "содержит"
+  LANGUAGES ||--o{ LOCALIZED_CONTENT : "имеет"
+  LANGUAGES ||--o{ USER_LANGUAGE_PREFERENCES : "выбран"
+                  </pre>
+               </div>
+            </div>
+
+            <div class="subsection">
+               <h3>API для многоязычности</h3>
+               <ul class="api-list">
+                  <li><code>GET /api/languages</code> - Получение списка доступных языков</li>
+                  <li><code>GET /api/translations/:lang</code> - Получение переводов для конкретного языка</li>
+                  <li><code>GET /api/translations/:lang/:namespace</code> - Получение переводов для конкретного языка и
+                     пространства имен</li>
+                  <li><code>PATCH /api/users/me/language</code> - Обновление языковых предпочтений пользователя</li>
+               </ul>
+            </div>
+
+            <div class="subsection">
+               <h3>Компоненты пользовательского интерфейса для многоязычности</h3>
                <ul>
-                  <li>Использование i18next для локализации интерфейса</li>
-                  <li>Хранение переводов в JSON-файлах</li>
-                  <li>Автоматическое определение языка пользователя</li>
-                  <li>Возможность ручного выбора языка</li>
+                  <li>Селектор языка в шапке сайта</li>
+                  <li>Автоматическое определение языка при первом посещении</li>
+                  <li>Сохранение выбранного языка в профиле пользователя и локальном хранилище</li>
+                  <li>Адаптация UI под особенности выбранного языка (длина текста, направление письма)</li>
                </ul>
             </div>
          </section>
