@@ -11,7 +11,7 @@ NC='\033[0m' # No Color
 # Logo
 print_logo() {
     echo -e "${CYAN}"
-    cat << "EOF"
+    /bin/cat << "EOF"
    ██████╗██╗   ██╗██████╗ ███████╗ ██████╗ ██████╗      ██████╗ ██████╗  ██████╗   
   ██╔════╝██║   ██║██╔══██╗██╔════╝██╔═══██╗██╔══██╗     ██╔══██╗██╔══██╗██╔═══██╗  
   ██║     ██║   ██║██████╔╝███████╗██║   ██║██████╔╝     ██████╔╝██████╔╝██║   ██║  
@@ -39,12 +39,12 @@ get_downloads_dir() {
 # Get latest version
 get_latest_version() {
     echo -e "${CYAN}ℹ️ Checking latest version...${NC}"
-    latest_release=$(curl -s https://api.github.com/repos/yeongpin/cursor-free-vip/releases/latest) || {
+    latest_release=$(/usr/bin/curl -s https://api.github.com/repos/yeongpin/cursor-free-vip/releases/latest) || {
         echo -e "${RED}❌ Cannot get latest version information${NC}"
         exit 1
     }
     
-    VERSION=$(echo "$latest_release" | grep -o '"tag_name": ".*"' | cut -d'"' -f4 | tr -d 'v')
+    VERSION=$(echo "$latest_release" | /bin/grep -o '"tag_name": ".*"' | /usr/bin/cut -d'"' -f4 | /usr/bin/tr -d 'v')
     if [ -z "$VERSION" ]; then
         echo -e "${RED}❌ Failed to parse version from GitHub API response:\n${latest_release}"
         exit 1
@@ -55,9 +55,9 @@ get_latest_version() {
 
 # Detect system type and architecture
 detect_os() {
-    if [[ "$(uname)" == "Darwin" ]]; then
+    if [[ "$(/usr/bin/uname)" == "Darwin" ]]; then
         # Detect macOS architecture
-        ARCH=$(uname -m)
+        ARCH=$(/usr/bin/uname -m)
         if [[ "$ARCH" == "arm64" ]]; then
             OS="mac_arm64"
             echo -e "${CYAN}ℹ️ Detected macOS ARM64 architecture${NC}"
@@ -65,9 +65,9 @@ detect_os() {
             OS="mac_intel"
             echo -e "${CYAN}ℹ️ Detected macOS Intel architecture${NC}"
         fi
-    elif [[ "$(uname)" == "Linux" ]]; then
+    elif [[ "$(/usr/bin/uname)" == "Linux" ]]; then
         # Detect Linux architecture
-        ARCH=$(uname -m)
+        ARCH=$(/usr/bin/uname -m)
         if [[ "$ARCH" == "aarch64" || "$ARCH" == "arm64" ]]; then
             OS="linux_arm64"
             echo -e "${CYAN}ℹ️ Detected Linux ARM64 architecture${NC}"
@@ -99,17 +99,17 @@ install_cursor_free_vip() {
             echo -e "${YELLOW}⚠️ Requesting administrator privileges...${NC}"
             if command -v sudo >/dev/null 2>&1; then
                 echo -e "${CYAN}ℹ️ Starting program with sudo...${NC}"
-                sudo chmod +x "${binary_path}"
-                sudo "${binary_path}"
+                /usr/bin/sudo /bin/chmod +x "${binary_path}"
+                /usr/bin/sudo "${binary_path}"
             else
                 echo -e "${YELLOW}⚠️ sudo not found, trying to run normally...${NC}"
-                chmod +x "${binary_path}"
+                /bin/chmod +x "${binary_path}"
                 "${binary_path}"
             fi
         else
             # Already running as root
             echo -e "${CYAN}ℹ️ Already running as root, starting program...${NC}"
-            chmod +x "${binary_path}"
+            /bin/chmod +x "${binary_path}"
             "${binary_path}"
         fi
         return
@@ -120,7 +120,7 @@ install_cursor_free_vip() {
     echo -e "${CYAN}ℹ️ Download link: ${download_url}${NC}"
     
     # Check if file exists
-    if curl --output /dev/null --silent --head --fail "$download_url"; then
+    if /usr/bin/curl --output /dev/null --silent --head --fail "$download_url"; then
         echo -e "${GREEN}✅ File exists, starting download...${NC}"
     else
         echo -e "${RED}❌ Download link does not exist: ${download_url}${NC}"
@@ -133,7 +133,7 @@ install_cursor_free_vip() {
             download_url="https://github.com/yeongpin/cursor-free-vip/releases/download/v${VERSION}/${binary_name}"
             echo -e "${CYAN}ℹ️ New download link: ${download_url}${NC}"
             
-            if ! curl --output /dev/null --silent --head --fail "$download_url"; then
+            if ! /usr/bin/curl --output /dev/null --silent --head --fail "$download_url"; then
                 echo -e "${RED}❌ New download link does not exist${NC}"
                 exit 1
             fi
@@ -143,7 +143,7 @@ install_cursor_free_vip() {
             download_url="https://github.com/yeongpin/cursor-free-vip/releases/download/v${VERSION}/${binary_name}"
             echo -e "${CYAN}ℹ️ New download link: ${download_url}${NC}"
             
-            if ! curl --output /dev/null --silent --head --fail "$download_url"; then
+            if ! /usr/bin/curl --output /dev/null --silent --head --fail "$download_url"; then
                 echo -e "${RED}❌ New download link does not exist${NC}"
                 exit 1
             fi
@@ -153,27 +153,27 @@ install_cursor_free_vip() {
     fi
     
     # Download file
-    if ! curl -L -o "${binary_path}" "$download_url"; then
+    if ! /usr/bin/curl -L -o "${binary_path}" "$download_url"; then
         echo -e "${RED}❌ Download failed${NC}"
         exit 1
     fi
     
     # Check downloaded file size
-    local file_size=$(stat -f%z "${binary_path}" 2>/dev/null || stat -c%s "${binary_path}" 2>/dev/null)
+    local file_size=$(/usr/bin/stat -f%z "${binary_path}" 2>/dev/null || /usr/bin/stat -c%s "${binary_path}" 2>/dev/null)
     echo -e "${CYAN}ℹ️ Downloaded file size: ${file_size} bytes${NC}"
     
     # If file is too small, it might be an error message
     if [ "$file_size" -lt 1000 ]; then
         echo -e "${YELLOW}⚠️ Warning: Downloaded file is too small, possibly not a valid executable file${NC}"
         echo -e "${YELLOW}⚠️ File content:${NC}"
-        cat "${binary_path}"
+        /bin/cat "${binary_path}"
         echo ""
         echo -e "${RED}❌ Download failed, please check version and operating system${NC}"
         exit 1
     fi
     
     echo -e "${CYAN}ℹ️ Setting executable permissions...${NC}"
-    if chmod +x "${binary_path}"; then
+    if /bin/chmod +x "${binary_path}"; then
         echo -e "${GREEN}✅ Installation completed!${NC}"
         echo -e "${CYAN}ℹ️ Program downloaded to: ${binary_path}${NC}"
         echo -e "${CYAN}ℹ️ Starting program...${NC}"
@@ -195,4 +195,4 @@ main() {
 }
 
 # Run main program
-main 
+main

@@ -15,7 +15,7 @@ const Header: React.FC = () => {
         </div>
         <div className="info-item">
           <span className="label">Стоимость:</span>
-          <span className="value">30 000 рублей</span>
+          <span className="value">90 000 рублей</span>
         </div>
       </div>
     </header>
