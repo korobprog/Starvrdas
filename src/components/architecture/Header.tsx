@@ -1,11 +1,12 @@
 import React from 'react';
 import './Architecture.css';
+import Logo from './Logo';
 
 const Header: React.FC = () => {
   return (
     <header className="architecture-header">
       <div className="logo">
-        <img src="https://via.placeholder.com/50x50" alt="Логотип" />
+        <Logo width={50} height={50} color="#3498db" />
         <span>Стриминговая платформа</span>
       </div>
       <div className="project-info">
